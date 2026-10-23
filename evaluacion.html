@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Evaluación interactiva del artículo sobre inteligencia de negocios.">
+  <title>Evaluación | Inteligencia de Negocios en Microempresas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="js/app.js" defer></script>
+  <script src="js/evaluacion.js" defer></script>
+</head>
+<body>
+  <header class="site-header"><div class="header-inner">
+    <a class="brand" href="index.html">Inteligencia de Negocios en Microempresas</a>
+    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Abrir menú"><span></span><span></span><span></span></button>
+    <nav class="site-nav" id="site-nav" aria-label="Navegación principal">
+      <a href="index.html">Inicio</a><a href="resumen.html">Resumen</a><a href="introduccion.html">Introducción</a><a href="metodologia.html">Metodología</a><a href="resultados.html">Resultados</a><a href="conclusiones.html">Conclusiones</a><a href="bibliografia.html">Bibliografía</a><a class="active nav-highlight" href="evaluacion.html">Evaluación</a>
+    </nav>
+  </div></header>
+  <main class="page-main">
+    <header class="page-heading"><p class="eyebrow">Comprueba lo aprendido</p><h1>Evaluación del artículo</h1></header>
+    <section class="card assessment-card">
+      <p>Responde las siguientes 10 preguntas de opción múltiple. Al final verás tu puntaje.</p>
+      <form id="form-evaluacion">
+        <div id="contenedor-evaluacion"></div>
+        <div class="button-row assessment-actions">
+          <button class="button button-primary" type="submit">Calificar</button>
+          <button class="button button-outline" id="reiniciar-evaluacion" type="button">Reiniciar evaluación</button>
+        </div>
+      </form>
+      <div id="resultado-evaluacion" class="score-message" role="status" aria-live="polite" tabindex="-1" hidden></div>
+    </section>
+  </main>
+  <footer class="site-footer"><div class="footer-inner"><p><strong>Inteligencia de Negocios en Microempresas</strong><br>Quisaguano-Collaguazo · Salazar-Ninasunta · Toasa-Supe</p><p>Sitio elaborado con fines académicos</p></div></footer>
+</body>
+</html>
