@@ -111,6 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (!container || !(form instanceof HTMLFormElement) || !result) return;
 
+  container.innerHTML = "";
   preguntas.forEach((item, questionIndex) => {
     const fieldset = document.createElement("fieldset");
     fieldset.className = "question-card";
@@ -143,8 +144,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const displayAttempt = (answers) => {
     let score = 0;
-    const feedbackList = document.createElement("ol");
-    feedbackList.className = "assessment-feedback";
+    const incorrectAnswers = document.createElement("ul");
+    incorrectAnswers.className = "assessment-feedback";
 
     preguntas.forEach((item, questionIndex) => {
       const selectedIndex = answers[questionIndex];
@@ -166,25 +167,38 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
 
-      const feedback = document.createElement("li");
-      const status = document.createElement("strong");
-      status.textContent = `${questionIndex + 1}. ${isCorrect ? "Correcta." : "Incorrecta."} `;
-      feedback.append(status, document.createTextNode(item.retroalimentacion));
       if (!isCorrect) {
+        const feedback = document.createElement("li");
+        const status = document.createElement("strong");
+        status.textContent = `Pregunta ${questionIndex + 1}: Incorrecta. `;
+        feedback.append(status);
+        if (selectedIndex === -1) {
+          feedback.append(document.createTextNode("No respondiste esta pregunta. "));
+        }
         const correctAnswer = document.createElement("p");
-        correctAnswer.textContent = `Respuesta correcta: ${item.opciones[item.correcta]}`;
+        correctAnswer.textContent = `La respuesta correcta era: ${item.opciones[item.correcta]}`;
         feedback.append(correctAnswer);
+        incorrectAnswers.append(feedback);
       }
-      feedbackList.append(feedback);
     });
 
-    const assessment = score >= 8 ? "¡Excelente!" : score >= 5 ? "Regular." : "Es momento de repasar el artículo.";
+    const assessment = score >= 8 ? "¡Excelente!" : "Sigue practicando.";
     result.replaceChildren();
     const scoreHeading = document.createElement("h2");
-    scoreHeading.textContent = `Obtuviste ${score}/10. ${assessment}`;
-    const feedbackHeading = document.createElement("h3");
-    feedbackHeading.textContent = "Retroalimentación";
-    result.append(scoreHeading, feedbackHeading, feedbackList);
+    scoreHeading.textContent = `Tu puntaje: ${score} / 10`;
+    const message = document.createElement("p");
+    message.className = "assessment-message";
+    message.textContent = assessment;
+    result.append(scoreHeading, message);
+    if (incorrectAnswers.childElementCount > 0) {
+      const feedbackHeading = document.createElement("h3");
+      feedbackHeading.textContent = "Preguntas para repasar";
+      result.append(feedbackHeading, incorrectAnswers);
+    } else {
+      const allCorrectMessage = document.createElement("p");
+      allCorrectMessage.textContent = "Respondiste correctamente todas las preguntas.";
+      result.append(allCorrectMessage);
+    }
     result.hidden = false;
     result.focus();
     const submitButton = form.querySelector('button[type="submit"]');
