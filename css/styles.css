@@ -143,11 +143,15 @@ tbody th { min-width: 125px; background: #f8fafc; }
 .question-card.is-incorrect { border-color: var(--color-error); background: #fef2f2; }
 .answer-option.option-correct { border-color: #86efac; background: #dcfce7; color: #14532d; }
 .answer-option.option-incorrect { border-color: #fca5a5; background: #fee2e2; color: #7f1d1d; }
-.feedback { margin: 13px 0 0; font-weight: 600; }
-.feedback.correct { color: #166534; }
-.feedback.incorrect { color: #991b1b; }
 .assessment-actions { margin-top: 24px; }
-.score-message { margin-top: 22px; padding: 18px 20px; border-radius: 9px; background: #eff6ff; color: var(--color-primary); font-size: 19px; font-weight: 700; }
+.score-message { margin-top: 22px; padding: 18px 20px; border-radius: 9px; background: #eff6ff; color: var(--color-primary); }
+.score-message h2 { margin: 0; color: var(--color-primary); font-size: 22px; }
+.score-message h3 { margin: 18px 0 8px; font-size: 17px; }
+.assessment-feedback { display: grid; gap: 12px; margin: 0; padding-left: 24px; font-size: 15px; font-weight: 400; }
+.assessment-feedback li { padding-left: 4px; }
+.assessment-feedback li > strong { color: var(--color-primary); }
+.assessment-feedback li > p { margin: 4px 0 0; color: #334155; }
+.assessment-actions button:disabled { cursor: not-allowed; opacity: .65; }
 .score-message[hidden] { display: none; }
 
 .site-footer { background: #172554; color: #e2e8f0; }

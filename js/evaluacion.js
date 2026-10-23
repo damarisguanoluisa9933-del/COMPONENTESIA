@@ -1,4 +1,6 @@
 // Renderiza las preguntas y calcula el resultado de la evaluación.
+const claveIntentoEvaluacion = "componentesia.evaluacion.intento.v1";
+
 const preguntas = [
   {
     pregunta: "¿Qué es la Inteligencia de Negocios según el artículo?",
@@ -105,10 +107,9 @@ const preguntas = [
 document.addEventListener("DOMContentLoaded", () => {
   const container = document.getElementById("contenedor-evaluacion");
   const form = document.getElementById("form-evaluacion");
-  const resetButton = document.getElementById("reiniciar-evaluacion");
   const result = document.getElementById("resultado-evaluacion");
 
-  if (!container || !(form instanceof HTMLFormElement) || !resetButton || !result) return;
+  if (!container || !(form instanceof HTMLFormElement) || !result) return;
 
   preguntas.forEach((item, questionIndex) => {
     const fieldset = document.createElement("fieldset");
@@ -136,64 +137,113 @@ document.addEventListener("DOMContentLoaded", () => {
       options.append(label);
     });
 
-    const feedback = document.createElement("p");
-    feedback.className = "feedback";
-    feedback.id = `retroalimentacion-${questionIndex}`;
-    feedback.hidden = true;
-    fieldset.append(options, feedback);
+    fieldset.append(options);
     container.append(fieldset);
   });
 
-  form.addEventListener("submit", (event) => {
-    event.preventDefault();
+  const displayAttempt = (answers) => {
     let score = 0;
+    const feedbackList = document.createElement("ol");
+    feedbackList.className = "assessment-feedback";
 
     preguntas.forEach((item, questionIndex) => {
-      const fieldset = document.getElementById(`pregunta-${questionIndex}`);
-      const feedback = document.getElementById(`retroalimentacion-${questionIndex}`);
-      const selected = form.querySelector(`input[name="pregunta-${questionIndex}"]:checked`);
-      const selectedIndex = selected instanceof HTMLInputElement ? Number(selected.value) : -1;
+      const selectedIndex = answers[questionIndex];
       const isCorrect = selectedIndex === item.correcta;
+      const fieldset = document.getElementById(`pregunta-${questionIndex}`);
 
       if (isCorrect) score += 1;
-      fieldset?.classList.toggle("is-correct", isCorrect);
-      fieldset?.classList.toggle("is-incorrect", !isCorrect);
-
-      fieldset?.querySelectorAll(".answer-option").forEach((label, optionIndex) => {
-        label.classList.toggle("option-correct", optionIndex === item.correcta);
-        label.classList.toggle("option-incorrect", optionIndex === selectedIndex && !isCorrect);
-      });
-
-      if (feedback) {
-        feedback.textContent = `${isCorrect ? "Correcto." : "Incorrecto."} ${item.retroalimentacion}`;
-        feedback.classList.toggle("correct", isCorrect);
-        feedback.classList.toggle("incorrect", !isCorrect);
-        feedback.hidden = false;
+      if (fieldset) {
+        fieldset.classList.toggle("is-correct", isCorrect);
+        fieldset.classList.toggle("is-incorrect", !isCorrect);
+        fieldset.querySelectorAll(".answer-option").forEach((label, optionIndex) => {
+          const input = label.querySelector("input");
+          if (input instanceof HTMLInputElement) {
+            input.checked = optionIndex === selectedIndex;
+            input.disabled = true;
+          }
+          label.classList.toggle("option-correct", optionIndex === item.correcta);
+          label.classList.toggle("option-incorrect", optionIndex === selectedIndex && !isCorrect);
+        });
       }
+
+      const feedback = document.createElement("li");
+      const status = document.createElement("strong");
+      status.textContent = `${questionIndex + 1}. ${isCorrect ? "Correcta." : "Incorrecta."} `;
+      feedback.append(status, document.createTextNode(item.retroalimentacion));
+      if (!isCorrect) {
+        const correctAnswer = document.createElement("p");
+        correctAnswer.textContent = `Respuesta correcta: ${item.opciones[item.correcta]}`;
+        feedback.append(correctAnswer);
+      }
+      feedbackList.append(feedback);
     });
 
     const assessment = score >= 8 ? "¡Excelente!" : score >= 5 ? "Regular." : "Es momento de repasar el artículo.";
-    result.textContent = `Obtuviste ${score}/10. ${assessment}`;
+    result.replaceChildren();
+    const scoreHeading = document.createElement("h2");
+    scoreHeading.textContent = `Obtuviste ${score}/10. ${assessment}`;
+    const feedbackHeading = document.createElement("h3");
+    feedbackHeading.textContent = "Retroalimentación";
+    result.append(scoreHeading, feedbackHeading, feedbackList);
     result.hidden = false;
     result.focus();
-  });
+    const submitButton = form.querySelector('button[type="submit"]');
+    if (submitButton instanceof HTMLButtonElement) submitButton.disabled = true;
+  };
 
-  resetButton.addEventListener("click", () => {
-    form.reset();
-    container.querySelectorAll(".question-card").forEach((fieldset) => {
-      fieldset.classList.remove("is-correct", "is-incorrect");
-      fieldset.querySelectorAll(".answer-option").forEach((label) => {
-        label.classList.remove("option-correct", "option-incorrect");
-      });
-      const feedback = fieldset.querySelector(".feedback");
-      if (feedback) {
-        feedback.hidden = true;
-        feedback.textContent = "";
-        feedback.classList.remove("correct", "incorrect");
+  let savedAttempt;
+  try {
+    const storedAttempt = window.localStorage.getItem(claveIntentoEvaluacion);
+    if (storedAttempt !== null) {
+      savedAttempt = JSON.parse(storedAttempt);
+      if (
+        !savedAttempt ||
+        !Array.isArray(savedAttempt.answers) ||
+        savedAttempt.answers.length !== preguntas.length ||
+        savedAttempt.answers.some((answer) => !Number.isInteger(answer) || answer < -1 || answer > 3)
+      ) {
+        throw new Error("El intento guardado no tiene un formato válido.");
       }
+    }
+  } catch (error) {
+    result.textContent = "No se pudo comprobar el intento previo en este navegador. Habilita el almacenamiento del sitio para realizar la evaluación.";
+    result.hidden = false;
+    form.querySelectorAll("input, button[type='submit']").forEach((control) => {
+      control.disabled = true;
     });
-    result.hidden = true;
-    result.textContent = "";
-    document.getElementById("form-evaluacion")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    console.error("No se pudo leer el intento de evaluación guardado.", error);
+    return;
+  }
+
+  if (savedAttempt) {
+    displayAttempt(savedAttempt.answers);
+    return;
+  }
+
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const answers = preguntas.map((_, questionIndex) => {
+      const selected = form.querySelector(`input[name="pregunta-${questionIndex}"]:checked`);
+      return selected instanceof HTMLInputElement ? Number(selected.value) : -1;
+    });
+
+    try {
+      if (window.localStorage.getItem(claveIntentoEvaluacion) !== null) {
+        result.textContent = "La evaluación ya fue realizada en este navegador y no se puede repetir.";
+        result.hidden = false;
+        form.querySelectorAll("input, button[type='submit']").forEach((control) => {
+          control.disabled = true;
+        });
+        return;
+      }
+      window.localStorage.setItem(claveIntentoEvaluacion, JSON.stringify({ answers }));
+    } catch (error) {
+      result.textContent = "No se pudo guardar tu intento. Habilita el almacenamiento del sitio e inténtalo de nuevo; tus respuestas todavía no se han calificado.";
+      result.hidden = false;
+      console.error("No se pudo guardar el intento de evaluación.", error);
+      return;
+    }
+
+    displayAttempt(answers);
   });
 });
